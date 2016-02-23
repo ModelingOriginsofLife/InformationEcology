@@ -80,23 +80,28 @@ def createNetwork(template):
 	return net
 
 # This function creates a random organism template
-def createOrganism():
+def createOrganism():	
 	org = {}
+	org["inputs"] = []
 	
-	# Inputs stores the indices of variables used to predict
-	org["inputs"] = [np.random.randint(VARS), np.random.randint(VARS), np.random.randint(VARS), np.random.randint(VARS), np.random.randint(VARS)]
-	# Outputs stores the index of the variable we're predicting
-	org["outputs"] = np.random.randint(VARS)
-	# Hidden is the number hidden-layer neurons
-	org["hidden"] = 5
-	
-	# These are derived quantities. Fitness is going to be the performance of the network on the data (squared error). Food will be the amount of food the organism has gathered so far
-	org["fitness"] = 0
-	org["food"] = 0
+	# What can happen is that both inputs are the same, and are the same as an output. This will create an error, so we retry if that happens
+	while len(org["inputs"]) == 0:
+		org = {}
+		# Inputs stores the indices of variables used to predict
+		org["inputs"] = [np.random.randint(VARS), np.random.randint(VARS)]
+		# Outputs stores the index of the variable we're predicting
+		org["outputs"] = np.random.randint(VARS)
+		# Hidden is the number hidden-layer neurons
+		org["hidden"] = 3
+		
+		# These are derived quantities. Fitness is going to be the performance of the network on the data (squared error). Food will be the amount of food the organism has gathered so far
+		org["fitness"] = 0
+		org["food"] = 0
 
-	# Do not allow self-prediction!
-	while org["outputs"] in org["inputs"]:
-		org["inputs"].remove(org["outputs"])
+		# Do not allow a variable to be used to predict itself!
+		while org["outputs"] in org["inputs"]:
+			org["inputs"].remove(org["outputs"])
+		
 	return org
 	
 # This function performs mutation on the organism template. The randint(20) calls are giving a 5% chance of doing each of these mutations.
@@ -122,6 +127,12 @@ def mutateOrganism(org):
 		if (org["hidden"] < 1):
 			org["hidden"] = 1
 	org["fitness"] = 0
+	
+	while (len(org["inputs"]) == 0): # This could happen...
+		org["inputs"].append(np.random.randint(VARS))
+		while org["outputs"] in org["inputs"]:
+			org["inputs"].remove(org["outputs"])
+		
 
 # This function gets the fitness of an organism (1.0/squared error), after 10 iterations of training.
 def evalOrganism(org):
