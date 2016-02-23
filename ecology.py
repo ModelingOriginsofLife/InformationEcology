@@ -25,8 +25,14 @@ np.random.seed(seed)
 def float32(k):
     return np.cast['float32'](k)
 
-# Load everything in. There will be some empty values, so replace those with '0'
-dataframe = pd.read_csv("train.csv").fillna('0')
+# Load everything in. 
+dataframe = pd.read_csv("train.csv")
+
+# There are some empty values in Embarked, so replace those with C
+dataframe["Embarked"].fillna('C', inplace=True)
+
+# There are some rare empty values in Age, so replace those with 20
+dataframe["Age"].fillna(20.0, inplace=True)
 
 LE = LabelEncoder()
 DV = DictVectorizer()
@@ -42,7 +48,7 @@ for key,value in fulldict.iteritems():
 data = DV.fit_transform(fulllist).todense()
 varname = DV.feature_names_
 
-# We end up with 13 variables including all the one-hot-encoded stuff
+# We end up with 11 variables including all the one-hot-encoded stuff
 VARS = data.shape[1]
 
 # Subtract the means and divide by the standard deviations - good for making the neural networks train efficiently
@@ -54,9 +60,9 @@ shuf = np.random.permutation(data.shape[0])
 data = data[shuf,:]
 data = data.astype(np.float32)
 
-# We use 500 rows to train the networks and 392 rows to evaluate the fitness
-TRAINCOUNT = 500
-TESTCOUNT = 392
+# We use 400 rows to train the networks and 492 rows to evaluate the fitness
+TRAINCOUNT = 400
+TESTCOUNT = 492
 
 # This function will create a neural network with a single hidden layer given a template (input variables and output variable). The output has no nonlinearity, so this is doing regression.
 def createNetwork(template):
