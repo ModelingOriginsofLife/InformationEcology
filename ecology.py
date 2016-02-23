@@ -25,32 +25,24 @@ np.random.seed(seed)
 def float32(k):
     return np.cast['float32'](k)
 
-# Load everything in
-dataframe = pd.read_csv("train.csv")
+# Load everything in. There will be some empty values, so replace those with '0'
+dataframe = pd.read_csv("train.csv").fillna('0')
 
 LE = LabelEncoder()
 DV = DictVectorizer()
-OHE = OneHotEncoder()
 
 # Some of these columns are text, so we want to one-hot-encode them. Columns like ticket number, passenger name, etc are kind of useless. Cabin is a special case - I'm excluding it because it has almost as many values as we have rows of data
-cols = [ "Survived", "Pclass", "Sex", "SibSp", "Parch", "Embarked" ]
-data = np.log(2+DV.fit_transform(dataframe[cols].T.to_dict().values()).todense())
+cols = [ "Survived", "Pclass", "Sex", "SibSp", "Parch", "Embarked", "Age", "Fare" ]
 
-# Now lets add back in the useful numerical features: ticket fare and ages
-fares = np.array(dataframe["Fare"]).reshape( (891,1) )
+fulldict = dataframe[cols].T.to_dict()
+fulllist = []
+for key,value in fulldict.iteritems():
+	fulllist.append(value)
 
-# Get ages and replace empty values with mean
-ages = np.array(dataframe["Age"]).reshape( (891,1) )
-m_age = np.mean(ages)
-ages[ages[:,0]==0] = m_age
+data = DV.fit_transform(fulllist).todense()
+varname = DV.feature_names_
 
-# Combine all the data together
-data = np.hstack( [data, fares, ages] )
-
-# There were still some missing values in the CSV, so replace them with 0
-data[ np.isnan(data) ] = 0
-
-# We end up with 12 variables including all the one-hot-encoded stuff
+# We end up with 13 variables including all the one-hot-encoded stuff
 VARS = data.shape[1]
 
 # Subtract the means and divide by the standard deviations - good for making the neural networks train efficiently
@@ -254,9 +246,9 @@ while (t<10000):
 		for key in outSurvey[i]:
 			if outSurvey[i][key]["count"]>=4:
 				f.write("\"%s-%d\" [shape=\"point\"];\n" % (key,i))
-				f.write("\"%s-%d\" -> %d;\n" % (key, i, i))
+				f.write("\"%s-%d\" -> \"%s\";\n" % (key, i, varname[i]))
 				for j in range(len(outSurvey[i][key]["list"])):
-					f.write("%d -> \"%s-%d\";\n" % (outSurvey[i][key]["list"][j], key, i))
+					f.write("\"%s\" -> \"%s-%d\";\n" % (varname[outSurvey[i][key]["list"][j]], key, i))
 	f.write("}\n")
 	f.close()
 	
