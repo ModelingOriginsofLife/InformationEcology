@@ -34,6 +34,10 @@ dataframe["Embarked"].fillna('C', inplace=True)
 # There are some rare empty values in Age, so replace those with 20
 dataframe["Age"].fillna(20.0, inplace=True)
 
+# Male and female are mutually exclusive, but the vectorizer will give them their own variables, leading to trivial auto-prediction in the ecology
+dataframe[dataframe["Sex"]=="male"] = 0
+dataframe[dataframe["Sex"]=="female"] = 1
+
 LE = LabelEncoder()
 DV = DictVectorizer()
 
@@ -48,7 +52,7 @@ for key,value in fulldict.iteritems():
 data = DV.fit_transform(fulllist).todense()
 varname = DV.feature_names_
 
-# We end up with 11 variables including all the one-hot-encoded stuff
+# We end up with 10 variables including all the one-hot-encoded stuff
 VARS = data.shape[1]
 
 # Subtract the means and divide by the standard deviations - good for making the neural networks train efficiently
