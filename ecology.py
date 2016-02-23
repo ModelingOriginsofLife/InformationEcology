@@ -35,8 +35,9 @@ dataframe["Embarked"].fillna('C', inplace=True)
 dataframe["Age"].fillna(20.0, inplace=True)
 
 # Male and female are mutually exclusive, but the vectorizer will give them their own variables, leading to trivial auto-prediction in the ecology
-dataframe[dataframe["Sex"]=="male"] = 0
-dataframe[dataframe["Sex"]=="female"] = 1
+# Male and female are mutually exclusive, but the vectorizer will give them their own variables, leading to trivial auto-prediction in the ecology
+dataframe.replace("male",0,inplace=True)
+dataframe.replace("female",1,inplace=True)
 
 LE = LabelEncoder()
 DV = DictVectorizer()
